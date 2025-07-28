@@ -1,0 +1,290 @@
+# =============================================================================
+# EVOLUTION API ADAPTER - GITIGNORE
+# =============================================================================
+# Protege archivos sensibles y de desarrollo
+# =============================================================================
+
+# =============================================================================
+# ARCHIVOS SENSIBLES - CREDENCIALES Y CONFIGURACIÓN
+# =============================================================================
+
+# Variables de entorno con credenciales
+.env
+.env.local
+.env.production
+.env.development
+.env.test
+*.env
+
+# Archivos de configuración con API keys
+docker-compose.yml
+docker-compose.override.yml
+docker-compose.prod.yml
+docker-compose.dev.yml
+
+# Archivos de configuración específicos
+evolution.env
+evolution-api.env
+adapter/.env
+adapter/env.example
+
+# Scripts de generación de keys
+generate-keys.js
+generate-test-token.js
+
+# =============================================================================
+# LOGS Y ARCHIVOS TEMPORALES
+# =============================================================================
+
+# Logs del adapter
+adapter/logs/
+adapter/logs/*
+*.log
+logs/
+
+# Logs de Docker
+docker-compose.log
+docker.log
+
+# Archivos temporales
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# =============================================================================
+# DATOS Y VOLÚMENES
+# =============================================================================
+
+# Datos de PostgreSQL
+postgres_data/
+postgres_evolution_data/
+
+# Datos de Redis
+redis_data/
+
+# Instancias de Evolution API
+evolution_instances/
+instances/
+
+# Archivos de sesión de WhatsApp
+*.session
+*.session.json
+*.session.db
+
+# =============================================================================
+# NODE.JS Y DEPENDENCIAS
+# =============================================================================
+
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencias
+package-lock.json
+yarn.lock
+
+# =============================================================================
+# BUILD Y DIST
+# =============================================================================
+
+# Archivos compilados
+dist/
+build/
+*.tsbuildinfo
+
+# Archivos de TypeScript
+*.js.map
+*.d.ts
+
+# =============================================================================
+# DOCKER Y CONTAINERS
+# =============================================================================
+
+# Imágenes de Docker
+*.tar
+*.tar.gz
+
+# Volúmenes de Docker
+docker-volumes/
+
+# =============================================================================
+# SISTEMA OPERATIVO
+# =============================================================================
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# IDEs Y EDITORES
+# =============================================================================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# TESTING Y COVERAGE
+# =============================================================================
+
+# Cobertura de tests
+coverage/
+.nyc_output/
+*.lcov
+
+# Reportes de tests
+test-results/
+junit.xml
+
+# =============================================================================
+# BACKUP Y ARCHIVOS DE RESPALDO
+# =============================================================================
+
+# Archivos de backup
+*.bak
+*.backup
+*.old
+*.orig
+
+# Archivos de respaldo automático
+*~
+*.swp
+*.swo
+
+# =============================================================================
+# DOCUMENTACIÓN TEMPORAL
+# =============================================================================
+
+# Archivos de documentación temporal
+docs/temp/
+*.md.bak
+
+# =============================================================================
+# SECRETOS Y CREDENCIALES ADICIONALES
+# =============================================================================
+
+# Archivos de certificados
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+
+# Archivos de configuración de servicios
+config.json
+secrets.json
+credentials.json
+
+# Archivos de base de datos
+*.db
+*.sqlite
+*.sqlite3
+
+# =============================================================================
+# ARCHIVOS ESPECÍFICOS DEL PROYECTO
+# =============================================================================
+
+# Archivos de configuración específicos de Evolution
+evolution-config/
+adapter-config/
+
+# Archivos de webhooks
+webhook-logs/
+webhook-data/
+
+# Archivos de media
+uploads/
+media/
+images/
+videos/
+audio/
+
+# =============================================================================
+# MONITORING Y METRICAS
+# =============================================================================
+
+# Archivos de métricas
+metrics/
+prometheus/
+grafana/
+
+# Archivos de health checks
+health-checks/
+monitoring/
+
+# =============================================================================
+# NOTAS IMPORTANTES
+# =============================================================================
+# 
+# ⚠️  IMPORTANTE: Este .gitignore protege:
+# - API Keys y JWT Secrets
+# - Configuración de Docker Compose
+# - Variables de entorno sensibles
+# - Logs y datos de la aplicación
+# - Archivos de sesión de WhatsApp
+# 
+# 🚨 NUNCA subas estos archivos a Git:
+# - .env files con credenciales
+# - docker-compose.yml con API keys
+# - Logs con información sensible
+# - Archivos de sesión de WhatsApp
+# 
+# ✅ Archivos SÍ seguros para subir:
+# - docker-compose.example.yml (sin credenciales)
+# - .env.example (sin valores reales)
+# - README.md y documentación
+# - Código fuente del adapter
+# ============================================================================= 
