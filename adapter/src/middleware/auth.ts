@@ -41,41 +41,63 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       throw Errors.UNAUTHORIZED('Token de autorización requerido');
     }
 
-    // Verificar el token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as JWTPayload;
-    
-    // Agregar información del cliente al request
-    req.clientId = decoded.clientId;
-    req.clientName = decoded.clientName;
-    req.userId = decoded.userId;
-    req.userRole = decoded.userRole;
+    // Verificar si es un API key simple
+    const apiKey = process.env.EVOLUTION_API_KEY || 'default-api-key';
+    if (token === apiKey) {
+      // Autenticación con API key simple
+      req.clientId = 'system';
+      req.clientName = 'System Client';
+      req.userId = 'system';
+      req.userRole = 'admin';
 
-    // Log de autenticación exitosa
-    logger.info(`Autenticación exitosa para cliente: ${decoded.clientName}`, {
-      clientId: decoded.clientId,
-      userId: decoded.userId,
-      endpoint: req.originalUrl,
-      method: req.method
-    });
+      logger.info('Autenticación exitosa con API key', {
+        clientId: 'system',
+        endpoint: req.originalUrl,
+        method: req.method
+      });
 
-    next();
+      return next();
+    }
+
+    // Verificar el token JWT
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as JWTPayload;
+      
+      // Agregar información del cliente al request
+      req.clientId = decoded.clientId;
+      req.clientName = decoded.clientName;
+      req.userId = decoded.userId;
+      req.userRole = decoded.userRole;
+
+      // Log de autenticación exitosa
+      logger.info(`Autenticación exitosa para cliente: ${decoded.clientName}`, {
+        clientId: decoded.clientId,
+        userId: decoded.userId,
+        endpoint: req.originalUrl,
+        method: req.method
+      });
+
+      next();
+    } catch (jwtError: any) {
+      if (jwtError.name === 'JsonWebTokenError') {
+        logger.warn('Token JWT inválido', {
+          ip: req.ip,
+          userAgent: req.get('User-Agent')
+        });
+        throw Errors.UNAUTHORIZED('Token inválido');
+      }
+      
+      if (jwtError.name === 'TokenExpiredError') {
+        logger.warn('Token JWT expirado', {
+          ip: req.ip,
+          userAgent: req.get('User-Agent')
+        });
+        throw Errors.UNAUTHORIZED('Token expirado');
+      }
+
+      throw jwtError;
+    }
   } catch (error: any) {
-    if (error.name === 'JsonWebTokenError') {
-      logger.warn('Token JWT inválido', {
-        ip: req.ip,
-        userAgent: req.get('User-Agent')
-      });
-      throw Errors.UNAUTHORIZED('Token inválido');
-    }
-    
-    if (error.name === 'TokenExpiredError') {
-      logger.warn('Token JWT expirado', {
-        ip: req.ip,
-        userAgent: req.get('User-Agent')
-      });
-      throw Errors.UNAUTHORIZED('Token expirado');
-    }
-
     logger.error('Error en autenticación', {
       error: error.message,
       ip: req.ip,
@@ -114,6 +136,16 @@ export const requireClientAccess = (clientIdParam: string) => {
     
     if (!targetClientId) {
       throw Errors.BAD_REQUEST('ClientId requerido');
+    }
+
+    // Permitir acceso si el usuario es 'system' (API key simple)
+    if (req.clientId === 'system') {
+      logger.info('Acceso permitido para usuario system', {
+        clientId: req.clientId,
+        targetClientId,
+        endpoint: req.originalUrl
+      });
+      return next();
     }
 
     if (req.clientId !== targetClientId) {

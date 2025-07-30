@@ -19,30 +19,39 @@ export class InstanceService {
   private evolutionApiKey: string;
 
   constructor() {
-    this.evolutionApiUrl = process.env.EVOLUTION_API_URL || 'http://evolution-api:8080';
+    this.evolutionApiUrl = process.env.EVOLUTION_API_URL || 'http://evolution_api:8080';
     this.evolutionApiKey = process.env.EVOLUTION_API_KEY || '';
   }
 
   async createInstance(instance: string, config: InstanceConfig): Promise<any> {
     try {
+      logger.info('Intentando crear instancia en Evolution API', { 
+        instance, 
+        url: `${this.evolutionApiUrl}/instance/create`,
+        config 
+      });
+
       const response = await axios.post(`${this.evolutionApiUrl}/instance/create`, {
         instanceName: instance,
-        webhook: config.webhookUrl,
         webhookByEvents: config.webhookByEvents,
-        events: config.events
+        events: config.events,
+        integration: 'EVOLUTION'
       }, {
         headers: {
           'Content-Type': 'application/json',
           'apikey': this.evolutionApiKey
-        }
+        },
+        timeout: 60000 // 60 segundos de timeout
       });
 
-      logger.info('Instancia creada en Evolution API', { instance });
+      logger.info('Instancia creada en Evolution API', { instance, response: response.data });
       return response.data;
     } catch (error) {
       logger.error('Error creando instancia en Evolution API', { 
         instance, 
-        error: (error as any).response?.data || (error as Error).message 
+        error: (error as any).response?.data || (error as Error).message,
+        code: (error as any).code,
+        status: (error as any).response?.status
       });
       throw new Error(`Error creando instancia: ${(error as any).response?.data?.message || (error as Error).message}`);
     }

@@ -1,142 +1,61 @@
 import { Router, Request, Response } from 'express';
 import { logger } from '@/utils/logger';
 import { asyncHandler } from '@/middleware/errorHandler';
+import { DiagnosticService } from '@/utils/diagnostic';
 
 const router = Router();
+const diagnosticService = new DiagnosticService();
 
 // Health check básico
-router.get('/', asyncHandler(async (req: Request, res: Response) => {
-  const startTime = Date.now();
-  
-  const healthData = {
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0',
-    memory: {
-      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
-      external: Math.round(process.memoryUsage().external / 1024 / 1024)
-    },
-    responseTime: Date.now() - startTime
-  };
-
-  logger.info('Health check realizado', healthData);
-  
+router.get('/ping', asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
-    data: healthData
+    message: 'Evolution Adapter is running',
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0'
   });
 }));
 
-// Health check detallado
-router.get('/detailed', asyncHandler(async (req: Request, res: Response) => {
-  const startTime = Date.now();
+// Diagnóstico completo
+router.get('/diagnostic', asyncHandler(async (req: Request, res: Response) => {
+  logger.info('Ejecutando diagnóstico completo...');
   
-  // Verificar servicios externos
-  const serviceChecks = {
-    evolutionApi: await checkEvolutionApi(),
-    redis: await checkRedis(),
-    database: await checkDatabase()
-  };
+  const diagnostics = await diagnosticService.runDiagnostics();
+  
+  logger.info('Diagnóstico completado', {
+    errors: diagnostics.errors.length,
+    hasEvolutionApiHealth: !!diagnostics.evolutionApiHealth,
+    hasAdapterHealth: !!diagnostics.adapterHealth
+  });
 
-  const allServicesHealthy = Object.values(serviceChecks).every(check => check.status === 'healthy');
-  
-  const detailedHealthData = {
-    status: allServicesHealthy ? 'healthy' : 'degraded',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    version: process.env.npm_package_version || '1.0.0',
-    memory: {
-      used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-      total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
-      external: Math.round(process.memoryUsage().external / 1024 / 1024),
-      rss: Math.round(process.memoryUsage().rss / 1024 / 1024)
-    },
-    cpu: process.cpuUsage(),
-    services: serviceChecks,
-    responseTime: Date.now() - startTime
-  };
-
-  logger.info('Health check detallado realizado', detailedHealthData);
-  
-  res.status(allServicesHealthy ? 200 : 503).json({
-    success: allServicesHealthy,
-    data: detailedHealthData
+  res.status(200).json({
+    success: true,
+    message: 'Diagnóstico completado',
+    data: diagnostics
   });
 }));
 
-// Health check para load balancers
-router.get('/ping', (req: Request, res: Response) => {
+// Test de creación de instancia
+router.post('/test-instance', asyncHandler(async (req: Request, res: Response) => {
+  const { instanceName } = req.body;
+  
+  if (!instanceName) {
+    res.status(400).json({
+      success: false,
+      message: 'instanceName es requerido'
+    });
+    return;
+  }
+
+  logger.info(`Probando creación de instancia: ${instanceName}`);
+  
+  const result = await diagnosticService.testInstanceCreation(instanceName);
+  
   res.status(200).json({
     success: true,
-    message: 'pong',
-    timestamp: new Date().toISOString()
+    message: 'Test de instancia completado',
+    data: result
   });
-});
-
-// Función para verificar Evolution API
-async function checkEvolutionApi() {
-  try {
-    const evolutionApiUrl = process.env.EVOLUTION_API_URL || 'http://localhost:8080';
-    const response = await fetch(`${evolutionApiUrl}/health`);
-    
-    if (response.ok) {
-      return {
-        status: 'healthy',
-        responseTime: Date.now(),
-        url: evolutionApiUrl
-      };
-    } else {
-      return {
-        status: 'unhealthy',
-        error: `HTTP ${response.status}`,
-        url: evolutionApiUrl
-      };
-    }
-  } catch (error) {
-    return {
-      status: 'unhealthy',
-      error: (error as Error).message,
-      url: process.env.EVOLUTION_API_URL || 'http://localhost:8080'
-    };
-  }
-}
-
-// Función para verificar Redis
-async function checkRedis() {
-  try {
-    // Aquí implementarías la verificación de Redis
-    // Por ahora retornamos un mock
-    return {
-      status: 'healthy',
-      message: 'Redis connection available'
-    };
-  } catch (error) {
-    return {
-      status: 'unhealthy',
-      error: (error as Error).message
-    };
-  }
-}
-
-// Función para verificar Database
-async function checkDatabase() {
-  try {
-    // Aquí implementarías la verificación de la base de datos
-    // Por ahora retornamos un mock
-    return {
-      status: 'healthy',
-      message: 'Database connection available'
-    };
-  } catch (error) {
-    return {
-      status: 'unhealthy',
-      error: (error as Error).message
-    };
-  }
-}
+}));
 
 export default router; 
